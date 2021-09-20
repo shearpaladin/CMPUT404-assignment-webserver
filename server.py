@@ -32,12 +32,23 @@ class MyWebServer(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+
+        # Find what type of Request we are getting
+        # VALID: GET
+        # INVALID: POST/PUT/DELETE return a 405
+        print(self.data.decode("utf-8"))
+        # .split(' ') turns an object into an array of elements splitting items where there is a space
+        request_type = self.data.decode("utf-8").split(' ')[0] # grab first item in our array
+        print(request_type) # Returns GET
+       
+
+
+        #self.request.sendall(bytearray("OK",'utf-8'))
     
     # 200: Request Succeeded
     def status_200(self):
         pass
-    
+
     # 301: Moved Permently
     def status_301(self):
         pass
