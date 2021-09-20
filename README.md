@@ -25,3 +25,9 @@ examples thus some of the code is Copyright © 2001-2013 Python
 Software Foundation; All Rights Reserved under the PSF license (GPL
 compatible) http://docs.python.org/2/library/socketserver.html
 
+Sources Used
+========================
+https://stackoverflow.com/questions/606191/convert-bytes-to-a-string
+
+https://stackoverflow.com/questions/3430372/how-do-i-get-the-full-path-of-the-current-files-directory
+

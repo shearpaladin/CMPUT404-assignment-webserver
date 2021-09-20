@@ -1,5 +1,6 @@
 #  coding: utf-8 
 import socketserver
+import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -38,8 +39,17 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # INVALID: POST/PUT/DELETE return a 405
         print(self.data.decode("utf-8"))
         # .split(' ') turns an object into an array of elements splitting items where there is a space
-        request_type = self.data.decode("utf-8").split(' ')[0] # grab first item in our array
-        print(request_type) # Returns GET
+        http_headers = self.data.decode("utf-8").split(' ')
+        request_type = http_headers[0] # grab first item in our array
+        file_name = http_headers[1]
+        print(request_type)
+        print(file_name)
+
+        project_directory = os.path.dirname(os.path.abspath(__file__))
+        print(project_directory)
+
+        
+       
        
 
 
