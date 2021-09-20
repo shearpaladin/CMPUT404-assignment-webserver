@@ -33,6 +33,26 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
         self.request.sendall(bytearray("OK",'utf-8'))
+    
+    # 200: Request Succeeded
+    def status_200(self):
+        pass
+    
+    # 301: Moved Permently
+    def status_301(self):
+        pass
+
+    # 404: Not Found
+    def status_404(self):
+        pass
+
+    # 405: Method Not Allowed
+    def status_405(self):
+        pass
+
+    
+
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
