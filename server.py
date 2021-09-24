@@ -32,58 +32,74 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
+
         print ("Got a request of: %s\n" % self.data)
 
         #https: // stackoverflow.com/questions/606191/convert-bytes-to-a-string
         print(self.data.decode("utf-8"))
-        # .split(' ') turns an object into an array of elements splitting items where there is a space
         http_headers = self.data.decode("utf-8").split("\r\n")[0].split(" ")
-        http_method = http_headers[0] # grab first item in our array
-        path = http_headers[1]
-        print(http_headers)
-        print("HTTP_METHOD:" + http_method)
-        print("PATH:"+ path)
-        
-        # Returned the path of where this program was located.
-        # https://stackoverflow.com/questions/3430372/how-do-i-get-the-full-path-of-the-current-files-directory
-        project_directory = os.path.dirname(os.path.abspath(__file__))
-        print(project_directory)
-
-
-        # If GET Request then go to index.html
-        if (http_method == "GET"):
-        # Prevent access to parent directory / check if it exists
-            if ".." in path.split("/"):
-                self.status_404()
-
+        http_method = http_headers[0] # grab METHOD
+        file_path = http_headers[1] # grab FILE_PATH
 
         
-        else:
+        if (self.check_method(http_method) == False):
             self.status_405()
-
-
+        
+        if (self.check_path(file_path) == False):
+            self.status_404()
+        
+        self.send_response()
+        
+            
+    def check_method(self, http_method):
+        if (http_method == "GET"):
+            return True
+        return False
     
-    # 200: Ok
-    def status_200(self):
-        status = "HTTP/1.1 200 OK" + "\r\n"
-        self.request.sendall(bytearray(status, 'utf-8'))
+    def check_path(self, file_path):
+        if (self.check_depth() == False or "../" in file_path):
+            return False
+        return True
+       
 
 
-    ############################ ERROR CODES ##################################################
-    # 301: Moved Permanently
-    def status_301(self):
-        status = "HTTP/1.1 301 Moved Permanently" + "\r\n"
-        self.request.sendall(bytearray(status, 'utf-8'))
+    #https: // security.openstack.org/guidelines/dg_using-file-paths.html
+    #https: // www.tutorialspoint.com/python3/os_getcwd.htm
+    #https: // www.w3schools.com/python/ref_string_startswith.asp
+    # Serve ONLY files in ./www and deeper
 
-    # 404: Not Found
-    def status_404(self):
-        status = "HTTP/1.1 404 Not Found" + "\r\n"
-        self.request.sendall(bytearray(status, 'utf-8'))
+    def check_depth(self):
+        base_dir = os.getcwd() + "/www"
+        return os.path.realpath("./www").startswith(base_dir)
+        
 
-    # 405: Method Not Allowed
-    def status_405(self):
-        status = "HTTP/1.1 405 Method Not Allowed" + "\r\n"
-        self.request.sendall(bytearray(status,'utf-8'))
+    def send_response(self):
+
+        # 405: Method Not Allowed
+        if self.status_code == 405:
+            status_line = "HTTP/1.1 405 Method Not Allowed" + "\r\n"
+            self.request.sendall(bytearray(status_line, 'utf-8'))
+
+        # 404: Not Found
+        elif self.status_code == 404:
+            status_line = "HTTP/1.1 404 Not Found" + "\r\n"
+            self.request.sendall(bytearray(status_line, 'utf-8'))
+
+        # 301 Moved Permanently
+        elif self.status_code == 301:
+            status_line = "HTTP/1.1 301 Moved Permanently" + "\r\n"
+            self.request.sendall(bytearray(status_line, 'utf-8'))
+            
+        # 200: Ok
+        elif self.status_code == 200:
+            status_line = "HTTP/1.1 200 OK" + "\r\n"
+            self.request.sendall(bytearray(status_line, 'utf-8'))
+    
+
+
+       
+
+        
 
         
 
