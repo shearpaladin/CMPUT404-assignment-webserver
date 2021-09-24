@@ -38,8 +38,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
         #print(self.data.decode("utf-8"))
 
         #https: // stackoverflow.com/questions/606191/convert-bytes-to-a-string
+
         self.method = self.data.decode("utf-8").split(' ')[0]  # grab METHOD
-        self.file_name = self.data.decode("utf-8").split(" ")[1]  # grab file/name
+        self.file_name = self.data.decode("utf-8").split(' ')[1]  # grab file/name
         self.url = os.path.abspath(__file__)
         self.home_dir = os.path.dirname(self.url)
         
@@ -62,6 +63,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             
             else:
                 self.send_response(404)
+                return
 
 
             # if file requested: base.css index.html
@@ -73,32 +75,34 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # for post/put/delete
         else:
             self.send_response(405)
+            return
         
     def send_response(self, status_code):
 
         # 405: Method Not Allowed
         if status_code == 405:
             self.request.sendall(
-                bytearray("HTTP/1.1 405 Method Not Allowed\r\n\r\n" + "<html><h1><405 Method Not Allowed</h1><body></body></html>", "utf-8"))
+                bytearray("HTTP/1.1 405 Method Not Allowed\r\n\r\n405 Method Not Allowed", "utf-8"))
 
         # 404: Not Found
         elif status_code == 404:
             self.request.sendall(
-                bytearray("HTTP/1.1 404 Not Found\r\n\r\n" + "<html><h1>404 Not Found</h1><body></body></html>", "utf-8"))
+                bytearray("HTTP/1.1 404 Not Found\r\n\r\n404 Not Found", "utf-8"))
 
         # 301 Moved Permanently
         elif status_code == 301:
             self.request.sendall(
             bytearray("HTTP/1.1 301 Moved Permanently\r\n\r\n", "utf-8"))
             self.request.sendall(
-                bytearray("Location: http://127.0.0.1:8080/deep/\n" + "<html><h1>301 Moved Permanently</h1></html>" + "\n", "utf-8"))
+                bytearray("Location: http://127.0.0.1:8080/deep/\n301 Moved Permanently", "utf-8"))
 
         # 200: Ok
         elif status_code == 200:
-            self.content = open(self.url, 'r').read()
+            with open(self.url, 'r') as file:
+                print(self.url)
+                self.content = file.read()
             self.request.sendall(
-                bytearray("HTTP/1.1 200 OK"+"\r\n" +"Content-Type: text/"+ self.content_type + "\r\n\r\n", 'utf-8'))
-            self.request.sendall(bytearray(self.content + "\n\n", 'utf-8'))
+                bytearray("HTTP/1.1 200 OK"+"\r\n" +"Content-Type: text/"+ self.content_type + "\r\n\r\n" + self.content, 'utf-8'))
     
 
 
