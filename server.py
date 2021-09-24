@@ -35,6 +35,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         print ("Got a request of: %s\n" % self.data)
 
+        #print(self.data.decode("utf-8"))
+
         #https: // stackoverflow.com/questions/606191/convert-bytes-to-a-string
         self.method = self.data.decode("utf-8").split(' ')[0]  # grab METHOD
         self.file_name = self.data.decode("utf-8").split(" ")[1]  # grab file/name
@@ -43,6 +45,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
 
         if (self.method == "GET"):
+
 
             if (os.path.exists(self.home_dir + '/www' + self.file_name) and (".." not in self.file_name.split("/"))):
                 
@@ -54,7 +57,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 if (self.file_name.endswith("/")):
                     self.url = self.home_dir + '/www' + self.file_name + "index.html"
                 
-
                 else:
                     self.url= self.home_dir + '/www' + self.file_name
             
@@ -68,35 +70,50 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.content_type = self.url.split(".")[-1]
             self.send_response(200)
   
-        # NON-GET REQUESTS
+        # for post/put/delete
         else:
             self.send_response(405)
         
-        
-
     def send_response(self, status_code):
 
         # 405: Method Not Allowed
         if status_code == 405:
-            status_line = "HTTP/1.1 405 Method Not Allowed" + "\r\n"
-            self.request.sendall(bytearray(status_line, 'utf-8'))
+            template = ("(<html><head><title>405 Method Not Allowed</title></head><body><h1>405 Method Not Allowed</h1><p> This document has fallen into a blackhole!</p></body></html>")
+            self.request.sendall(bytearray("HTTP/1.1 405 Method Not Allowed\r\n", 'utf-8'))
 
         # 404: Not Found
         elif status_code == 404:
-            status_line = "HTTP/1.1 404 Not Found" + "\r\n"
-            self.request.sendall(bytearray(status_line, 'utf-8'))
+            template = (f"""<html>
+                            <head>
+                            <title>404 Not Found </title>
+                            </head>
+                            <body>
+                            <h1>404 Not Found</h1>
+                            </body>
+                            </html>""")
+            self.request.sendall(bytearray(f"""HTTP/1.1 404 Not Found\r\n
+            """, 'utf-8'))
 
         # 301 Moved Permanently
         elif status_code == 301:
-            status_line = "HTTP/1.1 301 Moved Permanently" + "\r\n"
-            self.request.sendall(bytearray(status_line, 'utf-8'))
+            template = (f"""< html >
+                        < head >
+                        < title > 301 Moved Permanently < /title >
+                        < / head >
+                        < body >
+                        < h1 > 301 Moved Permanently < /h1 >
+                        < p > This document has fallen into a blackhole!< /p >
+                        < / body >
+                        < / html >""")
+            self.request.sendall(
+                bytearray(f"""HTTP/1.1 301 Moved Permanently\r\nLocation: None\r\n
+                """, 'utf-8'))
 
         # 200: Ok
         elif status_code == 200:
             self.content = open(self.url, 'r').read()
-            status_line = "HTTP/1.1 200 OK" + "\r\n"
-            content_type = "Content-Type: text/" + self.content_type + "\r\n"
-            self.request.sendall(bytearray(status_line + content_type + "\r\n" ,'utf-8'))
+            self.request.sendall(
+                bytearray("HTTP/1.1 200 OK"+"\r\n" +"Content-Type: text/"+ self.content_type + "\r\n\r\n", 'utf-8'))
             self.request.sendall(bytearray(self.content + "\n\n", 'utf-8'))
     
 
