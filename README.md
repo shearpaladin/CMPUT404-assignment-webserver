@@ -29,8 +29,5 @@ Sources Used
 ========================
 https://stackoverflow.com/questions/606191/convert-bytes-to-a-string
 
-https://security.openstack.org/guidelines/dg_using-file-paths.html
-https://www.tutorialspoint.com/python3/os_getcwd.htm
-https://www.w3schools.com/python/ref_string_startswith.asp
-
+https://docs.python.org/3/library/os.path.html
 

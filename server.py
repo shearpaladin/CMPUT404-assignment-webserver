@@ -36,64 +36,68 @@ class MyWebServer(socketserver.BaseRequestHandler):
         print ("Got a request of: %s\n" % self.data)
 
         #https: // stackoverflow.com/questions/606191/convert-bytes-to-a-string
-        print(self.data.decode("utf-8"))
-        http_headers = self.data.decode("utf-8").split("\r\n")[0].split(" ")
-        http_method = http_headers[0] # grab METHOD
-        file_path = http_headers[1] # grab FILE_PATH
+        self.method = self.data.decode("utf-8").split(' ')[0]  # grab METHOD
+        self.file_name = self.data.decode("utf-8").split(" ")[1]  # grab file/name
+        self.url = os.path.abspath(__file__)
+        self.home_dir = os.path.dirname(self.url)
+        
 
-        
-        if (self.check_method(http_method) == False):
-            self.status_405()
-        
-        if (self.check_path(file_path) == False):
-            self.status_404()
-        
-        self.send_response()
-        
+        if (self.method == "GET"):
+
+            if (os.path.exists(self.home_dir + '/www' + self.file_name) and (".." not in self.file_name.split("/"))):
+                
+                if (self.file_name) == "/deep":
+                    self.send_response(301)
+                    return
+
+                # http://127.0.0.1:8080/ 
+                if (self.file_name.endswith("/")):
+                    self.url = self.home_dir + '/www' + self.file_name + "index.html"
+                
+
+                else:
+                    self.url= self.home_dir + '/www' + self.file_name
             
-    def check_method(self, http_method):
-        if (http_method == "GET"):
-            return True
-        return False
-    
-    def check_path(self, file_path):
-        if (self.check_depth() == False or "../" in file_path):
-            return False
-        return True
-       
+            else:
+                self.send_response(404)
 
 
-    #https: // security.openstack.org/guidelines/dg_using-file-paths.html
-    #https: // www.tutorialspoint.com/python3/os_getcwd.htm
-    #https: // www.w3schools.com/python/ref_string_startswith.asp
-    # Serve ONLY files in ./www and deeper
-
-    def check_depth(self):
-        base_dir = os.getcwd() + "/www"
-        return os.path.realpath("./www").startswith(base_dir)
+            # if file requested: base.css index.html
+            if os.path.isdir("/www" + self.file_name): # /www/deep
+                self.url= self.file_name + "index.html"
+            self.content_type = self.url.split(".")[-1]
+            self.send_response(200)
+  
+        # NON-GET REQUESTS
+        else:
+            self.send_response(405)
+        
         
 
-    def send_response(self):
+    def send_response(self, status_code):
 
         # 405: Method Not Allowed
-        if self.status_code == 405:
+        if status_code == 405:
             status_line = "HTTP/1.1 405 Method Not Allowed" + "\r\n"
             self.request.sendall(bytearray(status_line, 'utf-8'))
 
         # 404: Not Found
-        elif self.status_code == 404:
+        elif status_code == 404:
             status_line = "HTTP/1.1 404 Not Found" + "\r\n"
             self.request.sendall(bytearray(status_line, 'utf-8'))
 
         # 301 Moved Permanently
-        elif self.status_code == 301:
+        elif status_code == 301:
             status_line = "HTTP/1.1 301 Moved Permanently" + "\r\n"
             self.request.sendall(bytearray(status_line, 'utf-8'))
-            
+
         # 200: Ok
-        elif self.status_code == 200:
+        elif status_code == 200:
+            self.content = open(self.url, 'r').read()
             status_line = "HTTP/1.1 200 OK" + "\r\n"
-            self.request.sendall(bytearray(status_line, 'utf-8'))
+            content_type = "Content-Type: text/" + self.content_type + "\r\n"
+            self.request.sendall(bytearray(status_line + content_type + "\r\n" ,'utf-8'))
+            self.request.sendall(bytearray(self.content + "\n\n", 'utf-8'))
     
 
 
