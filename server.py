@@ -39,14 +39,15 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         #https: // stackoverflow.com/questions/606191/convert-bytes-to-a-string
 
-        self.method = self.data.decode("utf-8").split(' ')[0]  # grab METHOD
-        self.file_name = self.data.decode("utf-8").split(' ')[1]  # grab file/name
+        self.method = self.data.decode("utf-8").split("\r\n")[0].split(" ")[0]  # grab METHOD
+        #print(self.method)
+        self.file_name = self.data.decode("utf-8").split("\r\n")[0].split(" ")[1]  # grab file/name
+        #print(self.file_name)
         self.url = os.path.abspath(__file__)
         self.home_dir = os.path.dirname(self.url)
         
 
         if (self.method == "GET"):
-
 
             if (os.path.exists(self.home_dir + '/www' + self.file_name) and (".." not in self.file_name.split("/"))):
                 
@@ -99,7 +100,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         # 200: Ok
         elif status_code == 200:
             with open(self.url, 'r') as file:
-                print(self.url)
+                #print(self.url)
                 self.content = file.read()
             self.request.sendall(
                 bytearray("HTTP/1.1 200 OK"+"\r\n" +"Content-Type: text/"+ self.content_type + "\r\n\r\n" + self.content, 'utf-8'))
