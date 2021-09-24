@@ -67,7 +67,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             # if file requested: base.css index.html
             if os.path.isdir("/www" + self.file_name): # /www/deep
                 self.url= self.file_name + "index.html"
-            self.content_type = self.url.split(".")[-1]
+            self.content_type = self.url.split(".")[-1] #grab css or html 
             self.send_response(200)
   
         # for post/put/delete
@@ -78,36 +78,20 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         # 405: Method Not Allowed
         if status_code == 405:
-            template = ("(<html><head><title>405 Method Not Allowed</title></head><body><h1>405 Method Not Allowed</h1><p> This document has fallen into a blackhole!</p></body></html>")
-            self.request.sendall(bytearray("HTTP/1.1 405 Method Not Allowed\r\n", 'utf-8'))
+            self.request.sendall(
+                bytearray("HTTP/1.1 405 Method Not Allowed\r\n\r\n" + "<html><h1><405 Method Not Allowed</h1><body></body></html>", "utf-8"))
 
         # 404: Not Found
         elif status_code == 404:
-            template = (f"""<html>
-                            <head>
-                            <title>404 Not Found </title>
-                            </head>
-                            <body>
-                            <h1>404 Not Found</h1>
-                            </body>
-                            </html>""")
-            self.request.sendall(bytearray(f"""HTTP/1.1 404 Not Found\r\n
-            """, 'utf-8'))
+            self.request.sendall(
+                bytearray("HTTP/1.1 404 Not Found\r\n\r\n" + "<html><h1>404 Not Found</h1><body></body></html>", "utf-8"))
 
         # 301 Moved Permanently
         elif status_code == 301:
-            template = (f"""< html >
-                        < head >
-                        < title > 301 Moved Permanently < /title >
-                        < / head >
-                        < body >
-                        < h1 > 301 Moved Permanently < /h1 >
-                        < p > This document has fallen into a blackhole!< /p >
-                        < / body >
-                        < / html >""")
             self.request.sendall(
-                bytearray(f"""HTTP/1.1 301 Moved Permanently\r\nLocation: None\r\n
-                """, 'utf-8'))
+            bytearray("HTTP/1.1 301 Moved Permanently\r\n\r\n", "utf-8"))
+            self.request.sendall(
+                bytearray("Location: http://127.0.0.1:8080/deep/\n" + "<html><h1>301 Moved Permanently</h1></html>" + "\n", "utf-8"))
 
         # 200: Ok
         elif status_code == 200:
