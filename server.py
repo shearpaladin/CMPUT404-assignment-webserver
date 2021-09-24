@@ -34,42 +34,58 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
 
-        # Find what type of Request we are getting
-        # VALID: GET
-        # INVALID: POST/PUT/DELETE return a 405
+        #https: // stackoverflow.com/questions/606191/convert-bytes-to-a-string
         print(self.data.decode("utf-8"))
         # .split(' ') turns an object into an array of elements splitting items where there is a space
-        http_headers = self.data.decode("utf-8").split(' ')
-        request_type = http_headers[0] # grab first item in our array
-        file_name = http_headers[1]
-        print(request_type)
-        print(file_name)
-
+        http_headers = self.data.decode("utf-8").split("\r\n")[0].split(" ")
+        http_method = http_headers[0] # grab first item in our array
+        path = http_headers[1]
+        print(http_headers)
+        print("HTTP_METHOD:" + http_method)
+        print("PATH:"+ path)
+        
+        # Returned the path of where this program was located.
+        # https://stackoverflow.com/questions/3430372/how-do-i-get-the-full-path-of-the-current-files-directory
         project_directory = os.path.dirname(os.path.abspath(__file__))
         print(project_directory)
 
+
+        # If GET Request then go to index.html
+        if (http_method == "GET"):
+        # Prevent access to parent directory / check if it exists
+            if ".." in path.split("/"):
+                self.status_404()
+
+
         
-       
-       
+        else:
+            self.status_405()
 
 
-        #self.request.sendall(bytearray("OK",'utf-8'))
     
-    # 200: Request Succeeded
+    # 200: Ok
     def status_200(self):
-        pass
+        status = "HTTP/1.1 200 OK" + "\r\n"
+        self.request.sendall(bytearray(status, 'utf-8'))
 
-    # 301: Moved Permently
+
+    ############################ ERROR CODES ##################################################
+    # 301: Moved Permanently
     def status_301(self):
-        pass
+        status = "HTTP/1.1 301 Moved Permanently" + "\r\n"
+        self.request.sendall(bytearray(status, 'utf-8'))
 
     # 404: Not Found
     def status_404(self):
-        pass
+        status = "HTTP/1.1 404 Not Found" + "\r\n"
+        self.request.sendall(bytearray(status, 'utf-8'))
 
     # 405: Method Not Allowed
     def status_405(self):
-        pass
+        status = "HTTP/1.1 405 Method Not Allowed" + "\r\n"
+        self.request.sendall(bytearray(status,'utf-8'))
+
+        
 
     
 
